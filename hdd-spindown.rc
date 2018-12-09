@@ -5,6 +5,7 @@
 #
 #CONF_DEV=( 'sda|3600' \
 #			'sdb|3600' ) 
+CONF_DEV=( 'sdc|3600' ) 
 
 # Hosts to monitor for 'presence' feature
 #CONF_HOSTS=( )
@@ -14,6 +15,7 @@
 
 # Syslog usage
 #CONF_SYSLOG=0
+CONF_SYSLOG=1
 
 # Spinup read length in MiB
 #CONF_READLEN=128

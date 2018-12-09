@@ -48,10 +48,14 @@ function dev_isup() {
 
 function dev_spindown() {
 	# skip spindown if already spun down
-	dev_isup "$1" || return 0
+	#dev_isup "$1" || return 0
+	# NOTE(2018-12-06) The disk does not support 'CHECK POWER MODE'
+	# $ sudo smartctl -i -n standby /dev/sdc
 
 	# omit spindown if SMART Self-Test in progress
-	selftest_active "$1" && return 0
+	#selftest_active "$1" && return 0
+	# NOTE(2018-12-06) The disk will spin up for reading SMART data !?!?!
+
 
 	# spindown disk
 	log "suspending $1"
@@ -122,20 +126,37 @@ function check_dev() {
 	# refresh r/w stats
 	COUNT_NEW="$(dev_stats "$DEV")"
 
+
+	#log "TRACE: Dev $DEV : Active $ACTIVE[$1] : Count $COUNT_NEW "
+	log "TRACE: Dev $DEV : Active ${ACTIVE[$1]} : Count $COUNT_NEW "
+
 	# spindown logic if stats equal previous recordings
 	if [ "${COUNT[$1]}" == "$COUNT_NEW" ]; then
 		# skip spindown if user present
 		if [ $USER_PRESENT -eq 0 ]; then
 			# check against idle timeout
 			if [ $(($(date +%s) - ${STAMP[$1]})) -ge ${TIMEOUT[$1]} ]; then
-				# spindown disk
-				dev_spindown "$DEV"
+
+				# Only spin down if disk is active.
+				# NOTE(2018-12-06) The disk does not support 'CHECK POWER MODE'
+				if [ ${ACTIVE[$1]} -eq 1 ]; then
+
+					# spindown disk
+					dev_spindown "$DEV"
+
+					ACTIVE[$1]=0
+				fi
 			fi
 		fi
 	else
 		# update r/w timestamp
 		COUNT[$1]="$COUNT_NEW"
 		STAMP[$1]=$(date +%s)
+
+		if [ ${ACTIVE[$1]} -eq 0 ]; then
+			log "Is active $DEV "
+			ACTIVE[$1]=1
+		fi
 	fi
 }
 
@@ -171,6 +192,8 @@ DEV_MAX=$((${#CONF_DEV[@]} - 1))
 for I in $(seq 0 $DEV_MAX); do
 	DEVICES[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
 	TIMEOUT[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 2)"
+	
+	ACTIVE[$I]=1
 done
 
 
