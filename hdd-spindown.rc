@@ -5,7 +5,8 @@
 #
 #CONF_DEV=( 'sda|3600' \
 #			'sdb|3600' ) 
-CONF_DEV=( 'sdc|3600' ) 
+#CONF_DEV=( 'sdc|3600' ) 
+CONF_DEV=( 'usb-H_W_RAID_5_152D00539000-0:0|3600' ) 
 
 # Hosts to monitor for 'presence' feature
 #CONF_HOSTS=( )
