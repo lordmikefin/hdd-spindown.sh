@@ -176,6 +176,9 @@ readonly CONF_READLEN=${CONF_READLEN:-128}
 # default syslog usage: disabled
 readonly CONF_SYSLOG=${CONF_SYSLOG:-0}
 
+#Logger for this script status
+readonly LOG_SCRIPT_STATUS=${LOG_SCRIPT_STATUS}
+
 # check prerequisites
 check_req date hdparm dd cut grep
 [ -n "$CONF_HOSTS" ] && check_req ping
@@ -190,7 +193,14 @@ fi
 # initialize device arrays
 DEV_MAX=$((${#CONF_DEV[@]} - 1))
 for I in $(seq 0 $DEV_MAX); do
-	DEVICES[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
+	
+	DEV_TXT="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
+	if [ -n "${LOG_SCRIPT_STATUS}" ]; then
+		echo "${DEV_TXT}" >> "${LOG_SCRIPT_STATUS}"
+	fi
+	
+	#DEVICES[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
+	DEVICES[$I]="${DEV_TXT}"
 	TIMEOUT[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 2)"
 	
 	ACTIVE[$I]=1
