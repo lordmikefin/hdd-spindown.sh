@@ -30,6 +30,12 @@ function log() {
 	fi
 }
 
+function log_status() {
+	if [ -n "${LOG_SCRIPT_STATUS}" ]; then
+		echo "$1" >> "${LOG_SCRIPT_STATUS}"
+	fi
+}
+
 function selftest_active() {
 	which smartctl &>/dev/null || return 0
 	smartctl -a "/dev/$1" | grep -q "Self-test routine in progress"
@@ -59,6 +65,8 @@ function dev_spindown() {
 
 	# spindown disk
 	log "suspending $1"
+	log_status "suspending $1"
+	
 	hdparm -qy "/dev/$1"
 	if [ $? -gt 0 ]; then
 		log "failed to suspend $1"
@@ -109,6 +117,8 @@ function check_dev() {
 			DEV="$(basename "$(readlink "/dev/disk/by-id/$DEV")")"
 			log "recognized disk: ${DEVICES[$1]} --> $DEV"
 			DEVICES[$1]="$DEV"
+			
+			log_status "Real device: ${DEV}"
 		else
 			log "skipping missing device '$DEV'" >&2
 			return 0
@@ -128,7 +138,8 @@ function check_dev() {
 
 
 	#log "TRACE: Dev $DEV : Active $ACTIVE[$1] : Count $COUNT_NEW "
-	log "TRACE: Dev $DEV : Active ${ACTIVE[$1]} : Count $COUNT_NEW "
+	#log "TRACE: Dev $DEV : Active ${ACTIVE[$1]} : Count $COUNT_NEW "
+	log_status "TRACE: Dev $DEV : Active ${ACTIVE[$1]} : Count ${COUNT_NEW} "
 
 	# spindown logic if stats equal previous recordings
 	if [ "${COUNT[$1]}" == "$COUNT_NEW" ]; then
@@ -156,6 +167,8 @@ function check_dev() {
 		if [ ${ACTIVE[$1]} -eq 0 ]; then
 			log "Is active $DEV "
 			ACTIVE[$1]=1
+			
+			log_status "Is active ${DEV} "
 		fi
 	fi
 }
@@ -195,9 +208,7 @@ DEV_MAX=$((${#CONF_DEV[@]} - 1))
 for I in $(seq 0 $DEV_MAX); do
 	
 	DEV_TXT="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
-	if [ -n "${LOG_SCRIPT_STATUS}" ]; then
-		echo "${DEV_TXT}" >> "${LOG_SCRIPT_STATUS}"
-	fi
+	log_status "Device: ${DEV_TXT}"
 	
 	#DEVICES[$I]="$(echo "${CONF_DEV[$I]}" | cut -d '|' -f 1)"
 	DEVICES[$I]="${DEV_TXT}"
