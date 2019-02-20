@@ -32,7 +32,7 @@ function log() {
 
 function log_status() {
 	if [ -n "${LOG_SCRIPT_STATUS}" ]; then
-		echo "$1" >> "${LOG_SCRIPT_STATUS}"
+		echo "$(date +[%Y-%m-%d,%H:%M]) $1" >> "${LOG_SCRIPT_STATUS}"
 	fi
 }
 
