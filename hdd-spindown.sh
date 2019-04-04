@@ -32,7 +32,18 @@ function log() {
 
 function log_status() {
 	if [ -n "${LOG_SCRIPT_STATUS}" ]; then
-		echo "$(date +[%Y-%m-%d,%H:%M]) $1" >> "${LOG_SCRIPT_STATUS}"
+		
+		if [ "$1" == "$LAST_LOG" ]; then
+			LAST_LOG_REP=$((LAST_LOG_REP + 1))
+		else
+			if [ "${LAST_LOG_REP}" -gt 0 ]; then
+				echo "$(date +[%Y-%m-%d,%H:%M]) [Repeated : ${LAST_LOG_REP"}] ${LAST_LOG}" >> "${LOG_SCRIPT_STATUS}"
+				LAST_LOG_REP=0
+			fi
+			
+			echo "$(date +[%Y-%m-%d,%H:%M]) $1" >> "${LOG_SCRIPT_STATUS}"
+			LAST_LOG="$1"
+		fi
 	fi
 }
 
@@ -191,6 +202,8 @@ readonly CONF_SYSLOG=${CONF_SYSLOG:-0}
 
 #Logger for this script status
 readonly LOG_SCRIPT_STATUS=${LOG_SCRIPT_STATUS}
+LAST_LOG=""
+LAST_LOG_REP=0
 
 # check prerequisites
 check_req date hdparm dd cut grep
