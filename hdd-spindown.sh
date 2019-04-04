@@ -37,7 +37,7 @@ function log_status() {
 			LAST_LOG_REP=$((LAST_LOG_REP + 1))
 		else
 			if [ "${LAST_LOG_REP}" -gt 0 ]; then
-				echo "$(date +[%Y-%m-%d,%H:%M]) [Repeated : ${LAST_LOG_REP"}] ${LAST_LOG}" >> "${LOG_SCRIPT_STATUS}"
+				echo "$(date +[%Y-%m-%d,%H:%M]) [Repeated : ${LAST_LOG_REP}] ${LAST_LOG}" >> "${LOG_SCRIPT_STATUS}"
 				LAST_LOG_REP=0
 			fi
 			
